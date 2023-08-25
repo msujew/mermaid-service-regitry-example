@@ -12,11 +12,11 @@ import { InfoServices } from '../index.js';
 
 export class MermaidServiceRegistry extends DefaultServiceRegistry {
   private infoServices!: InfoServices;
-  private documents: LangiumDocuments;
+  private documents: () => LangiumDocuments;
 
   constructor(services: LangiumSharedServices) {
     super();
-    this.documents = services.workspace.LangiumDocuments;
+    this.documents = () => services.workspace.LangiumDocuments;
   }
 
   public override register(language: LangiumServices): void {
@@ -31,12 +31,29 @@ export class MermaidServiceRegistry extends DefaultServiceRegistry {
   }
 
   public override getServices(uri: URI): LangiumServices {
-    const content: LangiumDocument<AstNode> = this.documents.getOrCreateDocument(uri);
-    const text: string = content.textDocument.getText();
-    if (/^\s*info/.test(text)) {
+    let type: string | undefined;
+    if (uri.fragment) {
+        type = uri.fragment;
+    } else {
+        const content = this.documents().all.find(e => e.uri.toString() === uri.toString());
+        if (!content) {
+            throw new Error('Could not find URI: ' + uri.toString());
+        }
+        const text: string = content.textDocument.getText();
+        type = identifyFile(text);
+    }
+    if (type === 'info') {
       return this.infoServices;
     } else {
       return super.getServices(uri);
     }
   }
+}
+
+export function identifyFile(text: string): string | undefined {
+    if (/^\s*info/.test(text)) {
+        return 'info';
+    } else {
+        return undefined;
+    }
 }

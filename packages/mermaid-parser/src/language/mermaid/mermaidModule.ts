@@ -1,9 +1,27 @@
-import type { DefaultSharedModuleContext, LangiumSharedServices } from 'langium';
-import { EmptyFileSystem, createDefaultSharedModule, inject } from 'langium';
+import type { AstNode, DefaultSharedModuleContext, LangiumSharedServices, Module, ParseResult, PartialLangiumSharedServices, URI } from 'langium';
+import { DefaultLangiumDocumentFactory, EmptyFileSystem, createDefaultModule, createDefaultSharedModule, inject } from 'langium';
 
-import { MermaidGeneratedSharedModule } from '../generated/module.js';
-import { MermaidServiceRegistry } from './mermaidServiceRegistry.js';
-import { createInfoServices } from '../index.js';
+import { InfoGeneratedModule, MermaidGeneratedSharedModule } from '../generated/module.js';
+import { MermaidServiceRegistry, identifyFile } from './mermaidServiceRegistry.js';
+import { InfoModule, InfoServices } from '../index.js';
+
+class CustomDocumentsFactory extends DefaultLangiumDocumentFactory {
+    protected override parse<T extends AstNode>(uri: URI, text: string): ParseResult<T> {
+        const type = identifyFile(text);
+        uri = uri.with({
+            fragment: type
+        });
+        const services = this.serviceRegistry.getServices(uri);
+        return services.parser.LangiumParser.parse<T>(text);
+    }
+}
+
+export const MermaidSharedModule: Module<LangiumSharedServices, PartialLangiumSharedServices> = {
+    ServiceRegistry: services => new MermaidServiceRegistry(services),
+    workspace: {
+        LangiumDocumentFactory: (services) => new CustomDocumentsFactory(services)
+    }
+};
 
 /**
  * Create the full set of services required by Langium.
@@ -23,9 +41,13 @@ export function createMermaidServices(context: DefaultSharedModuleContext = Empt
   const shared: LangiumSharedServices = inject(
     createDefaultSharedModule(context),
     MermaidGeneratedSharedModule,
+    MermaidSharedModule
   );
-  shared.ServiceRegistry = new MermaidServiceRegistry(shared);
-  const { Info } = createInfoServices(context);
+  const Info: InfoServices = inject(
+    createDefaultModule({ shared }),
+    InfoGeneratedModule,
+    InfoModule
+  );
   shared.ServiceRegistry.register(Info);
   return { Info, shared };
 }
