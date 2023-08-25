@@ -1,0 +1,22 @@
+{
+  "name": "mermaid-parser",
+  "description": "",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/src/index.d.ts"
+    }
+  },
+  "scripts": {
+    "clean": "rimraf dist src/language/generated"
+  },
+  "dependencies": {
+    "chevrotain": "^11.0.3",
+    "langium": "2.0.1"
+  },
+  "devDependencies": {
+    "langium-cli": "2.0.1"
+  }
+}

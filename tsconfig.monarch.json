@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "ESNext",
+    "outDir": "./public/syntaxes",
+    "strict": true
+  },
+  "include": ["**/syntaxes/*.monarch.ts"],
+  "exclude": ["dist", "node_modules"]
+}

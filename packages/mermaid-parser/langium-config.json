@@ -1,0 +1,16 @@
+{
+  "projectName": "Mermaid",
+  "languages": [
+    {
+      "id": "info",
+      "grammar": "./src/language/info/info.langium",
+      "fileExtensions": [".mmd", ".mermaid"],
+      "monarch": {
+        "out": "../mermaid-lsp/syntaxes/info.monarch.ts"
+      }
+    }
+  ],
+  "mode": "production",
+  "importExtension": ".js",
+  "out": "src/language/generated"
+}
